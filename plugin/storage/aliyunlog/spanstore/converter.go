@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"strings"
 
+	"encoding/json"
+
 	"github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/gogo/protobuf/proto"
 	"github.com/jaegertracing/jaeger/model"
@@ -76,6 +78,13 @@ func (c converter) fromSpanToLogContents(span *model.Span) []*sls.LogContent {
 	for _, tag := range span.Process.Tags {
 		contents = c.appendContents(contents, processTagsPrefix+tag.Key, tag.AsString())
 	}
+	// for _, log := range span.Logs {
+	// fmt.Println("jaeger!!!!!!!!!!!!", log, log.Timestamp, log.Fields)
+	if len(span.Logs) > 0 {
+		jsonString, _ := json.Marshal(span.Logs)
+		contents = c.appendContents(contents, "content", string(jsonString))
+	}
+	// }
 	return contents
 }
 
@@ -124,6 +133,10 @@ func (c converter) toSpan(log map[string]string) (*model.Span, error) {
 			span.Duration = model.MicrosecondsAsDuration(cast.ToUint64(v) / 1000)
 		case serviceNameField:
 			process.ServiceName = v
+		case "content":
+			if err := json.Unmarshal([]byte(v), &span.Logs); err != nil {
+				return nil, err
+			}
 		}
 		tags = c.appendTags(tags, tagsPrefix, k, v)
 		process.Tags = c.appendTags(process.Tags, processTagsPrefix, k, v)
