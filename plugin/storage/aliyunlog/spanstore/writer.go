@@ -51,6 +51,7 @@ func NewSpanWriter(logstore *sls.LogStore, logger *zap.Logger, metricsFactory me
 }
 
 func (s *SpanWriter) WriteSpan(span *model.Span) error {
+	// fmt.Println(span.Process.ServiceName)
 	if span.Process.ServiceName == "jaeger-query" {
 		return nil
 	}
