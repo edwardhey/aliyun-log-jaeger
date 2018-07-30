@@ -18,13 +18,12 @@ import (
 	"fmt"
 	"strings"
 
-	"encoding/json"
-
 	"github.com/aliyun/aliyun-log-go-sdk"
 	"github.com/gogo/protobuf/proto"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cast"
+	"gopkg.in/mgo.v2/bson"
 )
 
 // FromSpan converts a model.Span to a log record
@@ -81,7 +80,7 @@ func (c converter) fromSpanToLogContents(span *model.Span) []*sls.LogContent {
 	// for _, log := range span.Logs {
 	// fmt.Println("jaeger!!!!!!!!!!!!", log, log.Timestamp, log.Fields)
 	if len(span.Logs) > 0 {
-		jsonString, _ := json.Marshal(span.Logs)
+		jsonString, _ := bson.Marshal(span.Logs)
 		contents = c.appendContents(contents, "content", string(jsonString))
 	}
 	// }
@@ -134,7 +133,7 @@ func (c converter) toSpan(log map[string]string) (*model.Span, error) {
 		case serviceNameField:
 			process.ServiceName = v
 		case "content":
-			if err := json.Unmarshal([]byte(v), &span.Logs); err != nil {
+			if err := bson.Unmarshal([]byte(v), &span.Logs); err != nil {
 				return nil, err
 			}
 		}

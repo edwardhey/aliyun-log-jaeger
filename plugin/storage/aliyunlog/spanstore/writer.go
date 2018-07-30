@@ -51,6 +51,9 @@ func NewSpanWriter(logstore *sls.LogStore, logger *zap.Logger, metricsFactory me
 }
 
 func (s *SpanWriter) WriteSpan(span *model.Span) error {
+	if span.Process.ServiceName == "jaeger-query" {
+		return nil
+	}
 	logGroup := FromSpan(span, "", "0.0.0.0")
 
 	start := time.Now()
